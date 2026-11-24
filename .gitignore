@@ -1,0 +1,45 @@
+# Variables de entorno y secretos
+.env
+.env.*
+!.env.example
+
+# Bases de datos SQLite locales y de prueba
+backend/database/*.sqlite
+backend/database/*.sqlite3
+backend/database/*.db
+backend/database/*.db-journal
+backend/database/*.db-wal
+backend/database/*.db-shm
+*.sqlite
+*.sqlite3
+*.db
+
+# Python: entornos virtuales, caché y empaquetado
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Frontend (Vue / Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+node_modules/
+*.local
+
+# Logs, temporales y editores
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
