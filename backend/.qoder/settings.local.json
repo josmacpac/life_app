@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pwd && ls -la \"/home/josmacpac/Desarrollo/life_app/backend\" && ls -la \"/home/josmacpac/Desarrollo/life_app\")",
+      "Read(//home/josmacpac/Desarrollo/life_app/**)",
+      "Bash(ls -la \"/home/josmacpac/Desarrollo/life_app/backend/database\" \"/home/josmacpac/Desarrollo/life_app/backend/routes\" \"/home/josmacpac/Desarrollo/life_app/backend/services\" \"/home/josmacpac/Desarrollo/life_app/backend/scripts\" \"/home/josmacpac/Desarrollo/life_app/backend/.qoder\" \"/home/josmacpac/Desarrollo/life_app/docker\" \"/home/josmacpac/Desarrollo/life_app/frontend\" && git -C \"/home/josmacpac/Desarrollo/life_app\" ls-files)",
+      "Bash(find:*)",
+      "Bash(git -C \"/home/josmacpac/Desarrollo/life_app\" diff -- \"backend/database/schema.sql\" \"backend/scripts/init_db.py\" && git -C \"/home/josmacpac/Desarrollo/life_app\" status --short)",
+      "Bash(ls -la \"/home/josmacpac/Desarrollo/life_app/backend/.venv/bin\" && \"/home/josmacpac/Desarrollo/life_app/backend/.venv/bin/python\" -B -c 'import importlib.util, sys; print\\(\"Python:\", sys.version.split\\(\\)[0]\\); [print\\(name, bool\\(importlib.util.find_spec\\(name\\)\\)\\) for name in \\(\"flask\", \"dotenv\", \"supabase\", \"flask_cors\", \"redis\", \"pytest\"\\)]')",
+      "Bash(python:*)"
+    ]
+  }
+}

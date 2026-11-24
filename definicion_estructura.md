@@ -9,3 +9,4 @@ Base de datos
 
 Al iniciar el juego elegir si quiere estudiar o no
 luego mostrar varias cards con las opciones de carrera 
+tiene que haber una tabla para las inversiones, definir que pasa si cae ahi, si le sale el numero qu eligio recibe utilidades
