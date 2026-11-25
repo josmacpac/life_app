@@ -1,41 +1,40 @@
 {
   "paths": {
     "college": {
-      "total_tiles": 20,
+      "total_tiles": 9,
       "next_path": "post_education",
       "next_tile": 1,
       "fixed_tiles": {
         "1": "start",
-        "3": "career_choice",
-        "20": "graduation"
+        "9": "career_choice"
       },
       "tile_counts": {
-        "payday": 3,
-        "action": 3,
-        "investment": 2,
-        "choose_friend": 1,
-        "boost": 1
+        "payday": 0,
+        "action": 4,
+        "investment": 0,
+        "choose_friend": 3,
+        "boost": 0
       }
     },
     "no_degree": {
-      "total_tiles": 14,
+      "total_tiles": 10,
       "next_path": "post_education",
       "next_tile": 1,
       "fixed_tiles": {
-        "1": "start",
-        "3": "career_choice",
-        "14": "first_job_ready"
+        "2": "payday",
+        "1": "career_choice",
+        "8": "career_choice"
       },
       "tile_counts": {
-        "payday": 2,
-        "action": 3,
+        "payday": 1,
+        "action": 4,
         "investment": 1,
         "choose_friend": 1,
-        "boost": 2
+        "boost": 0
       }
     },
     "post_education": {
-      "total_tiles": 18,
+      "total_tiles": 10,
       "next_path": null,
       "next_tile": null,
       "branches": {
@@ -43,48 +42,50 @@
         "marriage_no": { "path": "single_life", "tile": 1 }
       },
       "fixed_tiles": {
-        "18": "marriage_choice"
+        "1": "payday",
+        "9": "marriage_choice"
       },
       "tile_counts": {
         "payday": 2,
-        "action": 4,
-        "investment": 2,
+        "action": 3,
+        "investment": 1,
         "choose_friend": 1,
-        "boost": 2
+        "buy_house": 1,
+        "boost": 0
       }
     },
     "married_life": {
-      "total_tiles": 22,
+      "total_tiles": 8,
       "next_path": "family_stage",
       "next_tile": 1,
       "fixed_tiles": {
-        "10": "career_change"
       },
       "tile_counts": {
-        "payday": 3,
-        "action": 5,
-        "investment": 3,
-        "choose_friend": 1,
-        "boost": 2
+        "payday": 1,
+        "action": 4,
+        "investment": 1,
+        "choose_friend": 0,
+        "buy_house": 1,
+        "boost": 1
       }
     },
     "single_life": {
-      "total_tiles": 22,
+      "total_tiles": 5,
       "next_path": "family_stage",
       "next_tile": 1,
       "fixed_tiles": {
-        "10": "career_change"
+        "1": "career_choice"
       },
       "tile_counts": {
-        "payday": 3,
-        "action": 5,
-        "investment": 3,
-        "choose_friend": 1,
-        "boost": 2
+        "payday": 1,
+        "action": 2,
+        "investment": 1,
+        "choose_friend": 0,
+        "boost": 0
       }
     },
     "family_stage": {
-      "total_tiles": 25,
+      "total_tiles": 6,
       "next_path": null,
       "next_tile": null,
       "branches": {
@@ -92,44 +93,50 @@
         "family_no": { "path": "without_kids", "tile": 1 }
       },
       "fixed_tiles": {
-        "25": "family_choice"
+        "6": "family_choice"
       },
       "tile_counts": {
-        "payday": 3,
-        "action": 5,
-        "investment": 3,
-        "choose_friend": 1,
-        "boost": 3
+        "payday": 1,
+        "action": 3,
+        "investment": 0,
+        "choose_friend": 0,
+        "boost": 0,
+        "buy_house": 1
       }
     },
     "with_kids": {
-      "total_tiles": 20,
+      "total_tiles": 14,
       "next_path": "midlife_stage",
       "next_tile": 1,
       "fixed_tiles": {},
       "tile_counts": {
-        "payday": 3,
-        "action": 5,
-        "investment": 2,
-        "choose_friend": 1,
-        "boost": 2
+        "payday": 1,
+        "action": 6,
+        "investment": 1,
+        "choose_friend": 0,
+        "choose_pet": 1,
+        "born_kid":3,
+        "boost": 1,
+        "buy_house": 1
       }
     },
     "without_kids": {
-      "total_tiles": 20,
+      "total_tiles": 9,
       "next_path": "midlife_stage",
       "next_tile": 1,
       "fixed_tiles": {},
       "tile_counts": {
-        "payday": 3,
-        "action": 5,
-        "investment": 3,
-        "choose_friend": 1,
-        "boost": 2
+        "payday": 1,
+        "action": 4,
+        "investment": 1,
+        "choose_friend": 0,
+        "choose_pet": 1,
+        "boost": 1,
+        "career_choice": 1
       }
     },
     "midlife_stage": {
-      "total_tiles": 20,
+      "total_tiles": 13,
       "next_path": null,
       "next_tile": null,
       "branches": {
@@ -137,40 +144,44 @@
         "midlife_steady": { "path": "steady_path", "tile": 1 }
       },
       "fixed_tiles": {
-        "20": "midlife_choice"
+        "12": "midlife_choice"
       },
       "tile_counts": {
-        "payday": 3,
-        "action": 4,
-        "investment": 2,
+        "payday": 2,
+        "action": 5,
+        "investment": 1,
         "choose_friend": 1,
-        "boost": 2
+        "career_choice": 1,
+        "boost": 1,
+        "buy_house": 1
       }
     },
     "crisis_path": {
-      "total_tiles": 16,
+      "total_tiles": 12,
       "next_path": "retirement_stage",
       "next_tile": 1,
       "fixed_tiles": {},
       "tile_counts": {
-        "payday": 2,
-        "action": 4,
-        "investment": 2,
-        "choose_friend": 1,
-        "boost": 2
+        "payday": 1,
+        "action": 6,
+        "investment": 1,
+        "choose_pet": 1,
+        "career_choice": 1,
+        "buy_house": 1,
+        "boost": 1
       }
     },
     "steady_path": {
-      "total_tiles": 16,
+      "total_tiles": 5,
       "next_path": "retirement_stage",
       "next_tile": 1,
       "fixed_tiles": {},
       "tile_counts": {
-        "payday": 2,
-        "action": 4,
-        "investment": 2,
+        "payday": 1,
+        "action": 3,
+        "investment": 0,
         "choose_friend": 1,
-        "boost": 2
+        "boost": 0
       }
     },
     "retirement_stage": {
@@ -186,40 +197,44 @@
       },
       "tile_counts": {
         "payday": 2,
-        "action": 3,
+        "action": 6,
         "investment": 2,
         "choose_friend": 1,
-        "boost": 2
+        "career_choice": 1,
+        "buy_house": 1,
+        "boost": 1
       }
     },
     "early_retirement": {
-      "total_tiles": 15,
+      "total_tiles": 3,
       "next_path": null,
       "next_tile": null,
       "fixed_tiles": {
-        "15": "finish"
+        "3": "finish"
       },
       "tile_counts": {
-        "payday": 2,
-        "action": 3,
-        "investment": 2,
-        "choose_friend": 1,
-        "boost": 2
+        "payday": 1,
+        "action": 1,
+        "investment": 0,
+        "choose_friend": 0,
+        "boost": 0
       }
     },
     "standard_retirement": {
-      "total_tiles": 15,
+      "total_tiles": 14,
       "next_path": null,
       "next_tile": null,
       "fixed_tiles": {
-        "15": "finish"
+        "2": "career_choice",
+        "14": "finish"
       },
       "tile_counts": {
         "payday": 2,
-        "action": 3,
-        "investment": 2,
-        "choose_friend": 1,
-        "boost": 2
+        "action": 5,
+        "investment": 1,
+        "choose_pet": 2,
+        "boost": 1,
+        "buy_house": 1
       }
     }
   }
