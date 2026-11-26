@@ -104,3 +104,9 @@ Usar pruebas pequeñas con la biblioteca estándar. Empezar por inicialización,
 - Costo de cada `family_member` (`choose_pet`, `born_kid`): valores distintos por tipo, aún sin definir; se guardan en el catálogo `family_members` y se devuelven en la jubilación.
 
 La aprobación no implica implementar todas las etapas. Primero concretaremos juntos el modelo de datos; después implementaremos un primer paso pequeño y lo revisaremos.
+
+
+- en el perfil de casas, agrear boton VENDER para vender casa al banco (obviamente a precio menor)
+- acomodar botones, estan muy en la orilla
+- agregar version, tanto en md conlas mejora, como en la app enla parte de abajo
+- agrgear boton para abandonar partida

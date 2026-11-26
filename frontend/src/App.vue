@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const API_BASE = '/api'
 
@@ -22,6 +22,82 @@ const boardToken = ref('')
 const confirmClose = ref(false)
 const recoverToken = ref('')
 const players = ref([])
+
+// Estado del tablero (vista jugador)
+const showRuletaModal = ref(false)
+const showPerfilModal = ref(false)
+const verTableroGeneral = ref(false)
+const acordeonAbierto = ref({ profesion: false, inversiones: false, casas: false, familia: false })
+const turnoEstado = ref('espera') // 'espera' | 'turno' | 'jubilado'
+const dineroAcumulado = ref(0)
+const tarjetasObtenidas = ref([])
+
+const girarRuleta = () => {
+  if (turnoEstado.value !== 'turno') return
+  showRuletaModal.value = true
+}
+
+const toggleAcordeon = (seccion) => {
+  acordeonAbierto.value = { ...acordeonAbierto.value, [seccion]: !acordeonAbierto.value[seccion] }
+}
+
+const STATE_KEY = 'life_app_state'
+
+const guardarEstado = () => {
+  const estado = {
+    currentView: currentView.value,
+    boardSessionName: boardSessionName.value,
+    boardSessionCode: boardSessionCode.value,
+    boardIsHost: boardIsHost.value,
+    boardToken: boardToken.value,
+  }
+  try {
+    localStorage.setItem(STATE_KEY, JSON.stringify(estado))
+  } catch (e) {
+    console.error('No se pudo guardar el estado:', e)
+  }
+}
+
+const limpiarEstadoTablero = () => {
+  currentView.value = 'home'
+  boardSessionName.value = ''
+  boardSessionCode.value = ''
+  boardIsHost.value = false
+  boardToken.value = ''
+  players.value = []
+  try {
+    localStorage.removeItem(STATE_KEY)
+  } catch (e) {
+    console.error('No se pudo limpiar el estado:', e)
+  }
+}
+
+const restaurarEstado = () => {
+  try {
+    const raw = localStorage.getItem(STATE_KEY)
+    if (!raw) return
+    const estado = JSON.parse(raw)
+    if (estado.currentView) currentView.value = estado.currentView
+    if (estado.boardSessionName) boardSessionName.value = estado.boardSessionName
+    if (estado.boardSessionCode) boardSessionCode.value = estado.boardSessionCode
+    if (estado.boardIsHost !== undefined) boardIsHost.value = estado.boardIsHost
+    if (estado.boardToken) boardToken.value = estado.boardToken
+  } catch (e) {
+    console.error('No se pudo restaurar el estado:', e)
+  }
+}
+
+onMounted(() => {
+  restaurarEstado()
+  if (currentView.value === 'board' && boardSessionCode.value) {
+    fetchPlayers()
+  }
+})
+
+watch([currentView, boardSessionName, boardSessionCode, boardIsHost, boardToken], () => {
+  guardarEstado()
+}, { deep: true })
+
 
 const fetchPlayers = async () => {
   if (!boardSessionCode.value) return
@@ -211,6 +287,7 @@ const cerrarModal = () => {
   createdCode.value = ''
   sessionName.value = ''
   userName.value = ''
+  limpiarEstadoTablero()
 }
 
 const abrirConfirmarCerrar = () => {
@@ -240,10 +317,9 @@ const cerrarSesion = async () => {
     }
 
     const data = await res.json()
-    currentView.value = 'home'
+    limpiarEstadoTablero()
     success.value = 'Sesión cerrada correctamente'
     localStorage.removeItem('life_app_token')
-    boardToken.value = ''
   } catch (err) {
     error.value = err.message
     confirmClose.value = true
@@ -508,18 +584,24 @@ const cerrarSesion = async () => {
             <p class="text-xs md:text-sm text-gray-500 mt-1">Código para unirse: <span class="font-mono font-bold text-primary">{{ boardSessionCode }}</span></p>
           </div>
 
-          <div class="flex gap-1 md:gap-2">
+          <div class="flex flex-wrap gap-1 md:gap-2 justify-center md:justify-end">
             <button
-              @click="currentView = 'home'"
+              @click="limpiarEstadoTablero"
               class="px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all text-xs md:text-sm"
             >
               Volver
             </button>
             <button
-              @click="navigator.clipboard.writeText(boardSessionCode)"
-              class="px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-medium text-white bg-primary hover:bg-secondary transition-all shadow-lg text-xs md:text-sm"
+              @click="showPerfilModal = true"
+              class="px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-medium text-primary bg-white border border-primary hover:bg-primary/5 transition-all shadow-md text-xs md:text-sm"
             >
-              Copiar código
+              Perfil
+            </button>
+            <button
+              @click="verTableroGeneral = true"
+              class="px-3 md:px-4 py-2 md:py-2.5 rounded-xl font-bold text-white bg-secondary hover:bg-secondary/90 transition-all shadow-md text-xs md:text-sm"
+            >
+              Tablero
             </button>
             <!-- Botón cerrar sesión solo para host -->
             <button
@@ -533,15 +615,77 @@ const cerrarSesion = async () => {
         </div>
       </header>
 
-      <!-- Área del tablero (placeholder) -->
-      <div :class="boardIsHost ? 'bg-white rounded-3xl shadow-xl p-6 md:p-12 border border-secondary/30 min-h-[500px] flex flex-col items-center justify-center' : 'bg-secondary/20 rounded-2xl p-4 md:p-6 border border-secondary/40 min-h-[600px] flex flex-col items-center justify-center'">
-        <div class="text-center">
-          <div :class="boardIsHost ? 'w-24 h-24' : 'w-16 h-16'" class="rounded-full bg-accent-yellow flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg">
-            <span :class="boardIsHost ? 'text-4xl' : 'text-3xl'">🎲</span>
+      <!-- Área del tablero (vista jugador mobile-first) -->
+      <div v-if="!boardIsHost" class="bg-secondary/20 rounded-2xl p-4 border border-secondary/40 min-h-[600px] flex flex-col items-center justify-center gap-4">
+
+        <!-- Estado + turno + monto -->
+        <div class="w-full flex flex-col md:flex-row gap-4 items-start md:items-center">
+          <!-- Caja izquierda: estado -->
+          <div class="flex-1 bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">Estado</span>
+              <span
+                :class="[
+                  'text-xs font-bold px-2 py-0.5 rounded',
+                  turnoEstado === 'espera' ? 'bg-accent-yellow/20 text-amber-800 border border-accent-yellow/40' : '',
+                  turnoEstado === 'turno' ? 'bg-secondary/20 text-secondary-dark border border-secondary/40' : '',
+                  turnoEstado === 'jubilado' ? 'bg-accent-pink/20 text-accent-pink-dark border border-accent-pink/40' : '',
+                ]"
+              >
+                {{ turnoEstado === 'espera' ? 'ESPERA' : turnoEstado === 'turno' ? 'TU TURNO' : 'JUBILADO' }}
+              </span>
+            </div>
+            <button
+              @click="girarRuleta"
+              :disabled="turnoEstado !== 'turno'"
+              class="w-full py-3 rounded-lg font-bold text-white bg-primary hover:bg-secondary transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-md active:scale-95"
+            >
+              Girar ruleta
+            </button>
           </div>
-          <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">Tablero de juego</h3>
-          <p class="text-sm md:text-base text-gray-600 max-w-md mx-auto">
-            {{ boardIsHost ? 'Vista de host — tablero completo' : 'Vista de jugador — optimizada para móvil' }}
+
+          <!-- Caja derecha: monto acumulado -->
+          <div class="flex-1 bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">Monto acumulado</span>
+            </div>
+            <div class="text-2xl font-bold text-primary">$ {{ dineroAcumulado.toLocaleString() }}</div>
+            <div class="mt-1 flex justify-between text-xs text-gray-500">
+              <span>Inversiones: $ {{ dineroAcumulado.toLocaleString() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rectángulo vertical: tarjetas obtenidas -->
+        <div class="w-full max-w-md flex-1 flex-col items-center gap-2">
+          <div class="w-full bg-white rounded-xl p-2 border border-gray-200 shadow-sm flex-1 overflow-hidden">
+            <div class="flex items-center gap-2 mb-1">
+              <div class="w-1 h-3 bg-primary rounded"></div>
+              <span class="text-xs font-bold text-gray-600 uppercase tracking-wider">Tarjetas</span>
+            </div>
+            <div class="h-full overflow-y-auto flex flex-col gap-1 p-1">
+              <div v-for="(tarjeta, idx) in tarjetasObtenidas" :key="idx" class="flex items-center gap-2 px-2 py-1 rounded bg-amber-50 border border-amber-100 text-xs">
+                <span class="w-5 h-5 rounded flex items-center justify-center bg-amber-100 text-amber-700 font-bold">{{ tarjeta.inicial || '?' }}</span>
+                <span class="text-gray-700">{{ tarjeta.nombre }}</span>
+              </div>
+              <div v-if="tarjetasObtenidas.length === 0" class="flex items-center justify-center h-8 text-xs text-gray-400">
+                Sin tarjetas aún
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Área del tablero (vista host) -->
+      <div v-else class="bg-white rounded-3xl shadow-xl p-6 md:p-12 border border-secondary/30 min-h-[500px] flex flex-col items-center justify-center">
+        <div class="text-center">
+          <div class="w-24 h-24 rounded-full bg-accent-yellow flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <span class="text-4xl">🎲</span>
+          </div>
+          <h3 class="text-2xl font-bold text-gray-800 mb-2">Tablero de juego</h3>
+          <p class="text-sm text-gray-600 max-w-md mx-auto">
+            Vista de host — tablero completo
           </p>
         </div>
       </div>
@@ -640,6 +784,210 @@ const cerrarSesion = async () => {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Modal Ruleta -->
+    <transition name="fade">
+      <div v-if="showRuletaModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          @click="showRuletaModal = false"
+          class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        ></div>
+
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md relative transform transition-all">
+          <button
+            @click="showRuletaModal = false"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+            aria-label="Cerrar"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <div class="text-center">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Ruleta</h3>
+
+            <div class="w-48 h-48 rounded-full border-4 border-primary flex items-center justify-center mx-auto mb-6 relative overflow-hidden">
+              <div class="absolute inset-0 border-4 border-transparent border-t-accent-pink rounded-full animate-spin"></div>
+              <div class="text-3xl font-bold text-primary">🎰</div>
+            </div>
+
+            <button
+              @click="showRuletaModal = false"
+              class="w-full py-3 rounded-xl font-bold text-white bg-accent-pink hover:bg-accent-pink/90 transition-all shadow-lg"
+            >
+              Listo
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Modal Perfil (acordeón) -->
+    <transition name="fade">
+      <div v-if="showPerfilModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          @click="showPerfilModal = false"
+          class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        ></div>
+
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md relative transform transition-all max-h-[80vh] flex flex-col">
+          <button
+            @click="showPerfilModal = false"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+            aria-label="Cerrar"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <div class="flex-1 overflow-y-auto">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Perfil del jugador</h3>
+
+            <!-- Acordeón: Profesión -->
+            <div class="bg-gray-50 rounded-xl border border-gray-200 mb-3 overflow-hidden">
+              <div class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-100 transition-colors" @click="toggleAcordeon('profesion')">
+                <span class="text-sm font-bold text-gray-700">Profesión</span>
+                <span class="text-xs text-primary">{{ acordeonAbierto.profesion ? '▲' : '▼' }}</span>
+              </div>
+              <div v-if="acordeonAbierto.profesion" class="p-3 border-t border-gray-200">
+                <p class="text-xs text-gray-600 mb-1">Empleo: <span class="font-medium">Empleado</span></p>
+                <p class="text-xs text-gray-600">Sueldo: $50.000</p>
+              </div>
+            </div>
+
+            <!-- Acordeón: Inversiones -->
+            <div class="bg-gray-50 rounded-xl border border-gray-200 mb-3 overflow-hidden">
+              <div class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-100 transition-colors" @click="toggleAcordeon('inversiones')">
+                <span class="text-sm font-bold text-gray-700">Inversiones</span>
+                <span class="text-xs text-primary">{{ acordeonAbierto.inversiones ? '▲' : '▼' }}</span>
+              </div>
+              <div v-if="acordeonAbierto.inversiones" class="p-3 border-t border-gray-200">
+                <p class="text-xs text-gray-600 mb-1">Número: <span class="font-medium">7</span></p>
+                <p class="text-xs text-gray-600">Monto: $100.000 · Escalón: 1</p>
+              </div>
+            </div>
+
+            <!-- Acordeón: Casas -->
+            <div class="bg-gray-50 rounded-xl border border-gray-200 mb-3 overflow-hidden">
+              <div class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-100 transition-colors" @click="toggleAcordeon('casas')">
+                <span class="text-sm font-bold text-gray-700">Casas</span>
+                <span class="text-xs text-primary">{{ acordeonAbierto.casas ? '▲' : '▼' }}</span>
+              </div>
+              <div v-if="acordeonAbierto.casas" class="p-3 border-t border-gray-200">
+                <p class="text-xs text-gray-600">Sin casas adquiridas</p>
+              </div>
+            </div>
+
+            <!-- Acordeón: Familia -->
+            <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+              <div class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-100 transition-colors" @click="toggleAcordeon('familia')">
+                <span class="text-sm font-bold text-gray-700">Familia</span>
+                <span class="text-xs text-primary">{{ acordeonAbierto.familia ? '▲' : '▼' }}</span>
+              </div>
+              <div v-if="acordeonAbierto.familia" class="p-3 border-t border-gray-200">
+                <p class="text-xs text-gray-600">Sin miembros de familia</p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            @click="showPerfilModal = false"
+            class="w-full py-3 rounded-xl font-bold text-white bg-primary hover:bg-secondary transition-all shadow-lg mt-4"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </transition>
+
+    <!-- Modal Tablero General -->
+    <transition name="fade">
+      <div v-if="verTableroGeneral" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          @click="verTableroGeneral = false"
+          class="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        ></div>
+
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-md relative transform transition-all max-h-[80vh] flex flex-col">
+          <button
+            @click="verTableroGeneral = false"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+            aria-label="Cerrar"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <div class="flex-1 overflow-y-auto">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Tablero General</h3>
+
+            <!-- Información de la sesión -->
+            <div class="bg-secondary/5 rounded-xl p-4 border border-secondary/20 mb-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-secondary uppercase tracking-wider">Sesión</span>
+                <span class="font-mono font-bold text-secondary">{{ boardSessionCode }}</span>
+              </div>
+              <p class="text-xs text-secondary-dark">
+                {{ players.length }} jugador{{ players.length !== 1 ? 'es' : '' }} conectado{{ players.length !== 1 ? 's' : '' }}
+              </p>
+            </div>
+
+            <!-- Lista de participantes con estado -->
+            <div class="space-y-2">
+              <div v-for="(player, idx) in players" :key="player.name" class="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-white">
+                <div class="flex items-center gap-3">
+                  <div
+                    :class="['w-8 h-8 rounded-full flex items-center justify-center text-primary font-bold text-sm', player.is_creator ? 'bg-accent-pink' : 'bg-secondary']"
+                  >
+                    {{ player.name.charAt(0).toUpperCase() }}
+                  </div>
+                  <div>
+                    <span class="text-sm font-medium text-gray-800">{{ player.name }}</span>
+                    <p v-if="player.is_creator" class="text-[10px] text-accent-pink font-bold uppercase">Creador</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-medium text-gray-500">Turno {{ idx + 1 }}</span>
+                  <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                </div>
+              </div>
+              <div v-if="players.length === 0" class="flex items-center justify-center h-20 text-xs text-gray-400">
+                Sin participantes aún
+              </div>
+            </div>
+
+            <!-- Leyenda de estados -->
+            <div class="mt-4 bg-gray-50 rounded-xl p-3 border border-gray-200">
+              <p class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Leyenda</p>
+              <div class="flex gap-4 text-xs text-gray-600">
+                <span class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                  Espera
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                  Turno
+                </span>
+                <span class="flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                  Jubilado
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <button
+            @click="verTableroGeneral = false"
+            class="w-full py-3 rounded-xl font-bold text-white bg-primary hover:bg-secondary transition-all shadow-lg mt-4"
+          >
+            Cerrar
+          </button>
         </div>
       </div>
     </transition>
