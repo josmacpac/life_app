@@ -9,7 +9,8 @@ DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 schema_sql = SCHEMA_PATH.read_text(encoding="utf-8")
 
 with sqlite3.connect(DB_PATH) as conn:
+    conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(schema_sql)
     conn.commit()
 
-print(f"Tabla sessions creada en: {DB_PATH}")
+print(f"Tablas sessions, players y session_records creadas en: {DB_PATH}")

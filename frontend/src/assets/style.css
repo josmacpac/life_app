@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: #00C2CB;
+    --color-secondary: #7FE0D4;
+    --color-accent-yellow: #FFE38A;
+    --color-accent-orange: #FF9A76;
+    --color-accent-pink: #FF5D8F;
+  }
+
+  body {
+    @apply bg-secondary text-gray-900 antialiased;
+    min-height: 100vh;
+  }
+}

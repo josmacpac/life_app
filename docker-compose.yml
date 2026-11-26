@@ -1,0 +1,38 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    env_file: .env
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  nginx:
+    build:
+      context: docker
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - ./frontend:/app/frontend
+      # node_modules propio del contenedor (musl/Alpine): evita que
+      # npm install dentro del contenedor borre los bindings glibc del host.
+      - frontend-node-modules:/app/frontend/node_modules
+    environment:
+      - API_URL=http://api:5000
+      - VITE_API_URL=http://localhost
+      - CORS_ORIGINS=http://localhost
+    restart: unless-stopped
+
+volumes:
+  frontend-node-modules:
